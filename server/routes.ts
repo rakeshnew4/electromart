@@ -14,6 +14,9 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Seed products on startup
+  await storage.seedProducts();
+
   // Get all products
   app.get("/api/products", async (req, res) => {
     try {

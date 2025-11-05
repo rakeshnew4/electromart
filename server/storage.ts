@@ -1,5 +1,6 @@
-import { type Product, type InsertProduct, type Order, type InsertOrder, type OrderItem, type InsertOrderItem } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type Product, type InsertProduct, type Order, type InsertOrder, type OrderItem, type InsertOrderItem, products, orders, orderItems } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Image paths for seeded products
 const oceanWaveImage = "/attached_assets/generated_images/Ocean_wave_resin_wall_art_2d8ce367.png";
@@ -25,21 +26,18 @@ export interface IStorage {
   // Order Items
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
   getOrderItems(orderId: string): Promise<OrderItem[]>;
+  
+  // Seeding
+  seedProducts(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private products: Map<string, Product>;
-  private orders: Map<string, Order>;
-  private orderItems: Map<string, OrderItem>;
-
-  constructor() {
-    this.products = new Map();
-    this.orders = new Map();
-    this.orderItems = new Map();
-    this.seedProducts();
-  }
-
-  private seedProducts() {
+export class DatabaseStorage implements IStorage {
+  async seedProducts(): Promise<void> {
+    // Check if products already exist
+    const existingProducts = await db.select().from(products).limit(1);
+    if (existingProducts.length > 0) {
+      return; // Already seeded
+    }
     const initialProducts: Omit<Product, "id">[] = [
       {
         name: "Ocean Wave Resin Wall Art",
@@ -199,54 +197,42 @@ export class MemStorage implements IStorage {
       },
     ];
 
-    initialProducts.forEach((product) => {
-      const id = randomUUID();
-      this.products.set(id, { ...product, id } as Product);
-    });
+    // Insert all products
+    await db.insert(products).values(initialProducts as any[]);
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
+    return await db.select().from(products);
   }
 
   async getProduct(id: string): Promise<Product | undefined> {
-    return this.products.get(id);
+    const result = await db.select().from(products).where(eq(products.id, id));
+    return result[0];
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const id = randomUUID();
-    const product: Product = { ...insertProduct, id } as Product;
-    this.products.set(id, product);
-    return product;
+    const result = await db.insert(products).values(insertProduct).returning();
+    return result[0];
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const id = randomUUID();
-    const order: Order = {
-      ...insertOrder,
-      id,
-      createdAt: new Date(),
-    } as Order;
-    this.orders.set(id, order);
-    return order;
+    const result = await db.insert(orders).values(insertOrder).returning();
+    return result[0];
   }
 
   async getOrder(id: string): Promise<Order | undefined> {
-    return this.orders.get(id);
+    const result = await db.select().from(orders).where(eq(orders.id, id));
+    return result[0];
   }
 
   async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {
-    const id = randomUUID();
-    const orderItem: OrderItem = { ...insertOrderItem, id } as OrderItem;
-    this.orderItems.set(id, orderItem);
-    return orderItem;
+    const result = await db.insert(orderItems).values(insertOrderItem).returning();
+    return result[0];
   }
 
   async getOrderItems(orderId: string): Promise<OrderItem[]> {
-    return Array.from(this.orderItems.values()).filter(
-      (item) => item.orderId === orderId
-    );
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
