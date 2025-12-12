@@ -58,7 +58,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
         <div className="flex items-center gap-2 mb-3">
           <span className="text-2xl font-bold" data-testid={`text-price-${product.id}`}>
-            ${parseFloat(product.price).toFixed(2)}
+            ₹{parseFloat(product.price).toFixed(2)}
           </span>
           {inStock < 5 && inStock > 0 && (
             <Badge variant="secondary" className="text-xs">

@@ -35,7 +35,7 @@ export function Header({ onCartClick, onSearchChange, searchQuery }: HeaderProps
           <Link href="/">
             <a className="flex items-center gap-2 hover-elevate active-elevate-2 rounded-md px-3 py-2" data-testid="link-home">
               <div className="text-2xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-                ResinArt
+                VK Premium Arts
               </div>
             </a>
           </Link>

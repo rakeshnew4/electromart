@@ -3,19 +3,17 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
-
-// Stripe integration - referenced from javascript_stripe blueprint
-// Initialize Stripe only if the secret key is available
-let stripe: Stripe | null = null;
-if (process.env.STRIPE_SECRET_KEY) {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2024-11-20.acacia",
-  });
-}
+import { db } from "./db";
+import { orders, type InsertOrder } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
   // Seed products on startup
   await storage.seedProducts();
+
+  // ------------------------------------------------------
+  // PRODUCTS
+  // ------------------------------------------------------
 
   // Get all products
   app.get("/api/products", async (req, res) => {
@@ -31,74 +29,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products/:id", async (req, res) => {
     try {
       const product = await storage.getProduct(req.params.id);
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
+      if (!product) return res.status(404).json({ message: "Product not found" });
       res.json(product);
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching product: " + error.message });
     }
   });
 
-  // Stripe payment intent creation - referenced from javascript_stripe blueprint
+  // ------------------------------------------------------
+  // ORDER CREATION (dummy payment)
+  // ------------------------------------------------------
+
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
-      if (!stripe) {
-        return res.status(500).json({ 
-          message: "Payment processing is not configured. Please set STRIPE_SECRET_KEY environment variable." 
-        });
-      }
-
       const { amount } = req.body;
-      
+
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-        },
+      const newOrder: InsertOrder = {
+        customerInfo: { name: "Ravi Kumar", email: "ravi@example.com" },
+        shippingAddress: { street: "123 Main St", city: "Chennai" },
+        totalAmount: amount,
+        status: "pending",
+      };
+
+      const [order] = await db.insert(orders).values(newOrder).returning();
+
+      res.json({
+        orderId: order.id,
+        message: "Order created successfully",
       });
-      
-      res.json({ clientSecret: paymentIntent.client_secret });
+
     } catch (error: any) {
-      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+      res.status(500).json({ message: "Error creating order: " + error.message });
     }
   });
 
-  // Create order
+  // ------------------------------------------------------
+  // ORDER CREATION (real with items)
+  // ------------------------------------------------------
+
   app.post("/api/orders", async (req, res) => {
     try {
       const { items, ...orderData } = req.body;
-      
-      // Validate order data
-      const validatedOrder = insertOrderSchema.parse(orderData);
-      
-      // Create order
-      const order = await storage.createOrder(validatedOrder);
-      
-      // Create order items if provided
-      if (items && Array.isArray(items)) {
-        for (const item of items) {
-          const orderItemData = {
-            orderId: order.id,
-            productId: item.productId,
-            productName: item.name,
-            productPrice: item.price.toString(),
-            quantity: item.quantity,
-          };
-          
-          const validatedOrderItem = insertOrderItemSchema.parse(orderItemData);
-          await storage.createOrderItem(validatedOrderItem);
-        }
+
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "Order must include items" });
       }
-      
-      res.status(201).json(order);
+
+      const validatedOrder = insertOrderSchema.parse(orderData);
+      const order = await storage.createOrder(validatedOrder);
+
+      for (const item of items) {
+        const orderItemData = {
+          orderId: order.id.toString(),
+          productId: String(item.productId),
+          productName: item.name,
+          productPrice: item.price.toString(),
+          quantity: item.quantity,
+        };
+
+        const validatedItem = insertOrderItemSchema.parse(orderItemData);
+        await storage.createOrderItem(validatedItem);
+      }
+
+      res.status(201).json({
+        success: true,
+        orderId: order.id.toString(),
+        message: "Order placed successfully",
+      });
+
     } catch (error: any) {
-      res.status(400).json({ message: "Error creating order: " + error.message });
+      console.error("Order API Error:", error);
+      res.status(400).json({ message: error.message });
     }
   });
 
@@ -106,18 +111,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/orders/:id", async (req, res) => {
     try {
       const order = await storage.getOrder(req.params.id);
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-      
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
       const items = await storage.getOrderItems(order.id);
       res.json({ ...order, items });
     } catch (error: any) {
-      res.status(500).json({ message: "Error fetching order: " + error.message });
+      res.status(500).json({ message: error.message });
     }
   });
 
-  const httpServer = createServer(app);
+  // ------------------------------------------------------
+  // ADMIN API
+  // ------------------------------------------------------
 
+  // Add Product
+  app.post("/api/admin/add-product", async (req, res) => {
+    try {
+      const { name, description, price, imageUrl } = req.body;
+
+      if (!name || !price) {
+        return res.status(400).json({ message: "Name & price are required" });
+      }
+
+      const product = await storage.createProduct({
+        name,
+        description,
+        price: Number(price),
+        imageUrl,
+      });
+
+      res.json({ success: true, product });
+
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Update order status
+  app.post("/api/admin/update-order-status", async (req, res) => {
+    try {
+      const { orderId, status } = req.body;
+
+      if (!orderId || !status) {
+        return res.status(400).json({ message: "orderId & status are required" });
+      }
+
+      const updated = await db
+        .update(orders)
+        .set({ status })
+        .where(orders.id.eq(orderId))
+        .returning();
+
+      res.json({ success: true, updated });
+
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get ALL orders (for admin)
+  app.get("/api/orders-all", async (req, res) => {
+    try {
+      const orders = await storage.getAllOrders();
+      res.json(orders);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // ------------------------------------------------------
+  // RETURN HTTP SERVER
+  // ------------------------------------------------------
+
+  const httpServer = createServer(app);
   return httpServer;
 }

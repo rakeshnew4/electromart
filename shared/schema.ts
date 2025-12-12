@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -27,22 +27,43 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 
 // Orders table
+// export const orders = pgTable("orders", {
+//   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+//   customerName: text("customer_name").notNull(),
+//   customerEmail: text("customer_email").notNull(),
+//   shippingAddress: text("shipping_address").notNull(),
+//   shippingCity: text("shipping_city").notNull(),
+//   shippingState: text("shipping_state").notNull(),
+//   shippingZip: text("shipping_zip").notNull(),
+//   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+//   status: text("status").notNull().default("pending"),
+//   createdAt: timestamp("created_at").notNull().defaultNow(),
+// });
+
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerName: text("customer_name").notNull(),
-  customerEmail: text("customer_email").notNull(),
-  shippingAddress: text("shipping_address").notNull(),
-  shippingCity: text("shipping_city").notNull(),
-  shippingState: text("shipping_state").notNull(),
-  shippingZip: text("shipping_zip").notNull(),
-  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").notNull().default("pending"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  customerInfo: jsonb("customer_info").notNull(),
+  shippingAddress: jsonb("shipping_address").notNull(),
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  createdAt: true,
+
+
+export const insertOrderSchema = createInsertSchema(orders).extend({
+  customerInfo: z.object({
+    name: z.string(),
+    email: z.string().email(),
+    phone: z.string().optional(), // <-- add phone
+  }),
+  shippingAddress: z.object({
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zip: z.string(),
+  }),
+  totalAmount: z.number(), // backend expects number
 });
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;

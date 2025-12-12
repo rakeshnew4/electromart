@@ -31,7 +31,7 @@ export default function OrderConfirmation() {
           </div>
           <h1 className="text-4xl font-bold mb-3">Order Confirmed!</h1>
           <p className="text-xl text-muted-foreground">
-            Thank you for your purchase
+            Thank you for your purchase, We will contact you shortly through whatsapp
           </p>
         </div>
 

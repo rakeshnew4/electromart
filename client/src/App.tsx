@@ -10,6 +10,7 @@ import { cartStorage } from "@/lib/cart";
 import Home from "@/pages/home";
 import ProductDetail from "@/pages/product-detail";
 import Checkout from "@/pages/checkout";
+import AdminPage from "@/pages/admin";
 import OrderConfirmation from "@/pages/order-confirmation";
 import NotFound from "@/pages/not-found";
 
@@ -40,6 +41,9 @@ function Router() {
       <Switch>
         <Route path="/checkout">
           <Checkout />
+        </Route>
+        <Route path="/admin">
+          <AdminPage />
         </Route>
         <Route path="/order-confirmation">
           <OrderConfirmation />

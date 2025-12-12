@@ -201,29 +201,57 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
-          <p className="text-lg mb-8 text-primary-foreground/90">
-            Subscribe to our newsletter for new arrivals, exclusive offers, and artisan stories
-          </p>
-          <div className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-md text-foreground"
-              data-testid="input-newsletter-email"
-            />
-            <Button 
-              size="lg" 
-              variant="secondary"
-              data-testid="button-subscribe"
-            >
-              Subscribe
-            </Button>
-          </div>
-        </div>
-      </section>
+<section className="py-16 bg-primary text-primary-foreground">
+  <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h2 className="text-3xl font-bold mb-4">Contact Us</h2>
+    <p className="text-lg mb-8 text-primary-foreground/90">
+      We’re here to help! Reach out to us anytime for custom orders, or support.
+    </p>
+    <div className="space-y-2 text-lg">
+      <p>
+        <span className="font-semibold">Address: Hingna, Maharashtra, India – 441110</span><br />
+
+      </p>
+      <p>
+        <span className="font-semibold">WhatsApp:   
+        <a 
+          href="https://wa.me/918309227948"
+          target="_blank"
+          className="underline hover:text-secondary"
+        >
+          +91 8309227948
+        </a>
+        </span>
+        <br />
+      </p>
+
+      <p>
+        <span className="font-semibold">Instagram:  </span>
+        <a 
+          href="https://instagram.com/yourpage"
+          target="_blank"
+          className="underline hover:text-secondary"
+        >
+          @vkpremium
+        </a>
+      </p>
+      <br />
+
+      <p>
+        <span className="font-semibold">Email:  </span>
+        <a 
+          href="mailto:supportvkarts@gmail.com"
+          className="underline hover:text-secondary"
+        >
+          supportvkpremium@gmail.com
+        </a>
+        
+      </p>
+      <br />
+    </div>
+  </div>
+</section>
+
     </div>
   );
 }
