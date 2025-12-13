@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { db } from "./db";
 import { orders, type InsertOrder } from "@shared/schema";
+import { sendOrderConfirmationEmail } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -73,7 +74,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", async (req, res) => {
     try {
-      const { items, ...orderData } = req.body;
+      const { items, customerInfo,shippingAddress, ...orderData } = req.body;
+      // const { orderId, email, items, totalAmount } = req.body;
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Order must include items" });
@@ -81,7 +83,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedOrder = insertOrderSchema.parse(orderData);
       const order = await storage.createOrder(validatedOrder);
-
+      // await sendOrderConfirmationEmail({
+      //   to: customerInfo.email,
+      //   orderId: order.id.toString(),
+      //   items,
+      //   totalAmount: Number(order.totalAmount),
+      // });
       for (const item of items) {
         const orderItemData = {
           orderId: order.id.toString(),
@@ -93,6 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const validatedItem = insertOrderItemSchema.parse(orderItemData);
         await storage.createOrderItem(validatedItem);
+
+        
       }
 
       res.status(201).json({

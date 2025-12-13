@@ -34,7 +34,10 @@ export default async function () {
       emptyOutDir: true,
     },
     server: {
+      port: 5174,
+      host: true,
       fs: {
+        
         strict: true,
         deny: ["**/.*"],
       },

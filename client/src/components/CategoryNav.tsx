@@ -2,11 +2,6 @@ import { Button } from "@/components/ui/button";
 
 const CATEGORIES = [
   { id: "all", label: "All Products" },
-  { id: "wall-art", label: "Wall Art" },
-  { id: "coasters", label: "Coasters" },
-  { id: "jewelry", label: "Jewelry" },
-  { id: "trays", label: "Trays" },
-  { id: "home-decor", label: "Home Decor" },
 ];
 
 interface CategoryNavProps {

@@ -46,7 +46,63 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
     return matchesSearch && matchesCategory;
   });
 
-  const featuredProducts = products.filter(p => parseFloat(p.rating) >= 4.8).slice(0, 6);
+  // const featuredProducts = products.filter(p => parseFloat(p.rating) >= 4.8).slice(0, 6);
+
+  const clocks = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("clocks")
+  );
+
+  const photoframes = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("photoframe")
+  );
+
+  const nameplates = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("nameplate")
+  );
+  const varmala = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("varmala")
+  );
+  const pyramids = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("pyramid")
+  );
+  const wallarts = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("wall-art")
+  );
+  const poojaplatter = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("pooja-platter")
+  );
+  
+  
+
+  // const newArrivals = products
+  //   .slice()
+  //   .reverse()
+  //   .slice(0, 6);
+  const [activeTab, setActiveTab] = useState<"clocks" | "photoframes" | "nameplates" | "varmala" | "pyramids" | "poojaplatter" | "wallarts">("clocks");
+
+  const tabProducts = {
+    clocks: clocks,
+    photoframes: photoframes,
+    nameplates: nameplates,
+    varmala: varmala,
+    pyramids: pyramids,
+    poojaplatter: poojaplatter,
+    wallarts: wallarts,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,74 +188,57 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       </section>
 
       {/* Featured Products */}
-      {!searchQuery && selectedCategory === "all" && featuredProducts.length > 0 && (
-        <section id="featured-products" className="py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4">Featured Products</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Our most loved pieces, carefully selected for their exceptional beauty and craftsmanship
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+{!searchQuery && selectedCategory === "all" && (
+  <section id="featured-products" className="py-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      {/* All Products */}
-      <section className="py-16 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2">
-              {searchQuery ? `Search Results for "${searchQuery}"` : 
-               selectedCategory === "all" ? "All Products" : 
-               selectedCategory.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
-            </h2>
-            <p className="text-muted-foreground">
-              {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"} found
-            </p>
-          </div>
+      {/* Heading */}
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-bold mb-4">Featured Products</h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Our most loved pieces, carefully selected for their exceptional beauty and craftsmanship
+        </p>
+      </div>
+      {/* Tabs */}
+      <div className="flex justify-center gap-8 mb-10 border-b">
+        {[
+          { key: "clocks", label: "Wall clocks" },
+          { key: "photoframes", label: "Photo Frames" },
+          { key: "nameplates", label: "Name Plates" },
+          { key: "varmala", label: "Varmala Preserve" },
+          { key: "pyramids", label: "Pyramid Arts" },
+          { key: "poojaplatter", label: "Pooja platter" },
+          { key: "wallarts", label: "Wall-Arts" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`pb-3 px-4 text-lg font-medium transition-all
+              ${
+                activeTab === tab.key
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="space-y-4 animate-pulse">
-                  <div className="aspect-square bg-muted rounded-md" />
-                  <div className="h-4 bg-muted rounded w-3/4" />
-                  <div className="h-4 bg-muted rounded w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-xl text-muted-foreground mb-4">No products found</p>
-              <Button onClick={() => onCategoryChange("all")} data-testid="button-clear-filters">
-                Clear Filters
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {tabProducts[activeTab]?.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAddToCart={handleAddToCart}
+          />
+        ))}
+      </div>
 
+    </div>
+  </section>
+)}
       {/* Newsletter */}
 <section className="py-16 bg-primary text-primary-foreground">
   <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
