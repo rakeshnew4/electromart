@@ -78,7 +78,7 @@ CONFIG = {
     },
     "nameplates": {
         "category": "Photo Frames",
-        "price": 599,
+        "price": 1599,
         "dimensions": "12 x 16 inches",
         "num_of_items": 18
     }

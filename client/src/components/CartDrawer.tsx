@@ -57,7 +57,7 @@ export function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, onRemove 
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold line-clamp-2 mb-1">{item.name}</h4>
-                      <p className="text-lg font-bold mb-2">${item.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold mb-2">₹{Number(item.price).toFixed(2)}</p>
                       <div className="flex items-center gap-2">
                         <Button
                           size="icon"
@@ -92,8 +92,9 @@ export function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, onRemove 
                       >
                         <X className="h-4 w-4" />
                       </Button>
+                      
                       <p className="font-bold" data-testid={`text-item-total-${item.productId}`}>
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₹{Number(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -105,16 +106,16 @@ export function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, onRemove 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span data-testid="text-subtotal">${subtotal.toFixed(2)}</span>
+                  <span data-testid="text-subtotal">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Tax (8%)</span>
-                  <span data-testid="text-tax">${tax.toFixed(2)}</span>
+                  <span data-testid="text-tax">₹{tax.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span data-testid="text-total">${total.toFixed(2)}</span>
+                  <span data-testid="text-total">₹{total.toFixed(2)}</span>
                 </div>
               </div>
               <Button 

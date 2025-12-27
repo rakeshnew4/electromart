@@ -73,53 +73,132 @@ export default function Checkout() {
   // -------------------------------------
   // Step 1: Create order + send OTP
   // -------------------------------------
+  // const handlePlaceOrder = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsSendingOtp(true);
+  //   try {
+  //     // Create order in backend
+  //     const resp = await apiRequest("POST", "/api/orders", {
+  //       customerInfo: {
+  //         name: formData.name,
+  //         email: formData.email,
+  //         phone: formData.phone,
+  //       },
+  //       shippingAddress: {
+  //         street: formData.address,
+  //         city: formData.city,
+  //         state: formData.state,
+  //         zip: String(formData.zip),
+  //       },
+  //       totalAmount: Number(total.toFixed(2)),
+  //       items: cartStorage.get(),
+  //     });
+  //     const order = await resp.json();
+  //     setOrderId(String(order.orderId));
+
+  //     // Firebase OTP
+  //     const phoneWithCode = "+91" + formData.phone;
+
+  //     const appVerifier = window.recaptchaVerifier;
+
+  //     const result = await signInWithPhoneNumber(
+  //       auth,
+  //       phoneWithCode,
+  //       appVerifier
+  //     );
+  //     window.confirmationResult = result;
+
+  //     toast({ title: "OTP Sent", description: "Check your SMS inbox." });
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast({
+  //       title: "Failed",
+  //       description: "Could not place order or send OTP.",
+  //       variant: "destructive",
+  //     });
+  //   } finally {
+  //     setIsSendingOtp(false);
+  //   }
+  // };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSendingOtp(true);
-    try {
-      // Create order in backend
-      const resp = await apiRequest("POST", "/api/orders", {
-        customerInfo: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        },
-        shippingAddress: {
-          street: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: String(formData.zip),
-        },
-        totalAmount: Number(total.toFixed(2)),
-        items: cartStorage.get(),
-      });
-      const order = await resp.json();
-      setOrderId(String(order.orderId));
+  e.preventDefault();
+  setIsSendingOtp(true);
 
-      // Firebase OTP
-      const phoneWithCode = "+91" + formData.phone;
+  try {
+    // 1️⃣ Create order in backend
+    const resp = await apiRequest("POST", "/api/orders", {
+      customerInfo: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      },
+      shippingAddress: {
+        street: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip: String(formData.zip),
+      },
+      totalAmount: Number(total.toFixed(2)),
+      items: cartStorage.get(),
+    });
 
-      const appVerifier = window.recaptchaVerifier;
+    const order = await resp.json();
+    const orderId = String(order.orderId);
+    setOrderId(orderId);
 
-      const result = await signInWithPhoneNumber(
-        auth,
-        phoneWithCode,
-        appVerifier
-      );
-      window.confirmationResult = result;
+    // 2️⃣ Build WhatsApp message
+    const itemsText = cartStorage
+      .get()
+      .map(
+        (item: any, idx: number) =>
+          `${idx + 1}. ${item.name} x${item.quantity} - ₹${item.price}`
+      )
+      .join("\n");
+      
+    const message = `
+🛒 *My order Details*
 
-      toast({ title: "OTP Sent", description: "Check your SMS inbox." });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Failed",
-        description: "Could not place order or send OTP.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
+📦 *Order ID:* ${orderId}
+
+👤 *Customer:* ${formData.name}
+📞 *Phone:* ${formData.phone}
+📧 *Email:* ${formData.email || "N/A"}
+
+🏠 *Address:*
+${formData.address}
+${formData.city}, ${formData.state} - ${formData.zip}
+
+🧾 *Items:*
+${itemsText}
+
+//     `.trim();
+
+    // 3️⃣ Open WhatsApp
+    const businessNumber = "918309227948"; // 🔴 CHANGE to your WhatsApp number (with country code)
+    const whatsappUrl = `https://wa.me/${businessNumber}?text=${encodeURIComponent(
+      message
+    )}`;
+    cartStorage.clear();
+    window.open(whatsappUrl, "_blank");
+
+    toast({
+      title: "Order placed",
+      description: "You will be redirected to WhatsApp to confirm the order.",
+    });
+
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: "Order failed",
+      description: "Could not place order. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSendingOtp(false);
+  }
+};
+
 
   // -------------------------------------
   // Step 2: Verify OTP
@@ -190,31 +269,12 @@ export default function Checkout() {
 
             {!orderId && (
               <Button className="w-full" size="lg" disabled={isSendingOtp}>
-                {isSendingOtp ? "Sending OTP..." : `Place Order - ₹${total.toFixed(2)}`}
+                {isSendingOtp ? "Opening Whatsapp..." : `Place Order - ₹${total.toFixed(2)}`}
+                
               </Button>
             )}
+            
 
-            {orderId && (
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle>Verify OTP</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Input
-                    placeholder="Enter OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                  />
-                  <Button
-                    onClick={handleVerifyOtp}
-                    disabled={isVerifying || otp.length !== 6}
-                    className="w-full"
-                  >
-                    {isVerifying ? "Verifying..." : "Confirm Order"}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
           </form>
 
           {/* Order Summary */}

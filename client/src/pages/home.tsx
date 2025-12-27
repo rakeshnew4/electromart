@@ -8,6 +8,8 @@ import { Sparkles, Shield, Truck, Heart } from "lucide-react";
 import { cartStorage } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@assets/generated_images/Resin_art_crafting_process_79d2f1ba.png";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
+
 
 interface HomeProps {
   searchQuery: string;
@@ -86,13 +88,19 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
       p.name.toLowerCase().includes("pooja-platter")
   );
   
+    const returngifts = products
+  .filter(
+    p =>
+      p.name.toLowerCase().includes("return")
+  );
+  
   
 
   // const newArrivals = products
   //   .slice()
   //   .reverse()
   //   .slice(0, 6);
-  const [activeTab, setActiveTab] = useState<"clocks" | "photoframes" | "nameplates" | "varmala" | "pyramids" | "poojaplatter" | "wallarts">("clocks");
+  const [activeTab, setActiveTab] = useState<"clocks" | "photoframes" | "nameplates" | "varmala" | "pyramids" | "poojaplatter" | "returngifts" | "wallarts">("clocks");
 
   const tabProducts = {
     clocks: clocks,
@@ -101,6 +109,7 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
     varmala: varmala,
     pyramids: pyramids,
     poojaplatter: poojaplatter,
+    returngifts: returngifts,
     wallarts: wallarts,
   };
 
@@ -128,24 +137,50 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
               Discover unique pieces that transform your space with vibrant colors and stunning designs
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button 
-                size="lg" 
-                className="text-lg px-8"
-                onClick={() => {
-                  document.getElementById("featured-products")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                data-testid="button-shop-now"
-              >
-                Shop Now
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="text-lg px-8 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
-                data-testid="button-explore-collections"
-              >
-                Explore Collections
-              </Button>
+  <section className="py-16 text-primary-foreground text-left">
+  <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+    <h2 className="text-3xl font-bold mb-4">Contact Us For Customised Orders</h2>
+    <div className="space-y-2 text-lg">
+
+      <p>
+        <span className="font-semibold text-left">WhatsApp:   
+        <a 
+          href="https://wa.me/918309227948"
+          target="_blank"
+          className="underline hover:text-secondary"
+        >
+          +91 8309227948
+        </a>
+        </span>
+        <br />
+      </p>
+
+      {/* <p>
+        <span className="font-semibold">Instagram:  </span>
+        <a 
+          href="https://instagram.com/yourpage"
+          target="_blank"
+          className="underline hover:text-secondary"
+        >
+          @vkpremium
+        </a>
+      </p> */}
+
+      <p>
+        <span className="font-semibold">Email:  </span>
+        <a 
+          href="mailto:supportvkarts@gmail.com"
+          className="underline hover:text-secondary"
+        >
+          support.vkpremium@gmail.com
+        </a>
+        
+      </p>
+    </div>
+  </div>
+</section>
+
+              
             </div>
           </div>
         </div>
@@ -167,7 +202,7 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
                 <Truck className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold">Free Shipping</h3>
-              <p className="text-sm text-muted-foreground">On all orders over $50 within the US</p>
+              <p className="text-sm text-muted-foreground">On all orders over ₹50 within the India</p>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -187,43 +222,79 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
         </div>
       </section>
 
-      {/* Featured Products */}
+            {/* Featured Products */}
 {!searchQuery && selectedCategory === "all" && (
   <section id="featured-products" className="py-16">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       {/* Heading */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-10" id="product-tabs">
         <h2 className="text-4xl font-bold mb-4">Featured Products</h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Our most loved pieces, carefully selected for their exceptional beauty and craftsmanship
         </p>
       </div>
       {/* Tabs */}
-      <div className="flex justify-center gap-8 mb-10 border-b">
-        {[
-          { key: "clocks", label: "Wall clocks" },
-          { key: "photoframes", label: "Photo Frames" },
-          { key: "nameplates", label: "Name Plates" },
-          { key: "varmala", label: "Varmala Preserve" },
-          { key: "pyramids", label: "Pyramid Arts" },
-          { key: "poojaplatter", label: "Pooja platter" },
-          { key: "wallarts", label: "Wall-Arts" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`pb-3 px-4 text-lg font-medium transition-all
-              ${
-                activeTab === tab.key
-                  ? "border-b-2 border-primary text-primary"
-                  : "text-muted-foreground hover:text-primary"
-              }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Tabs */}
+<div className="flex flex-col md:flex-row md:justify-center md:gap-8 mb-10 md:border-b">
+  
+  {/* Mobile – Vertical tabs */}
+  <div className="flex flex-col gap-2 md:hidden">
+    {[
+      { key: "clocks", label: "Wall clocks" },
+      { key: "photoframes", label: "Photo Frames" },
+      { key: "nameplates", label: "Name Plates" },
+      { key: "varmala", label: "Varmala Preserve" },
+      { key: "pyramids", label: "Pyramid Arts" },
+      { key: "poojaplatter", label: "Pooja platter" },
+      { key: "wallarts", label: "Wall-Arts" },
+      { key: "returngifts", label: "Return Gifts" },
+      
+    ].map((tab) => (
+      <button
+        key={tab.key}
+        onClick={() => setActiveTab(tab.key as any)}
+        className={`px-4 py-3 rounded-lg text-left font-medium transition
+          ${
+            activeTab === tab.key
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground hover:bg-muted/70"
+          }`}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+  {/* Desktop – Horizontal tabs */}
+  <div className="hidden md:flex gap-8">
+    {[
+      { key: "clocks", label: "Wall clocks" },
+      { key: "photoframes", label: "Photo Frames" },
+      { key: "nameplates", label: "Name Plates" },
+      { key: "varmala", label: "Varmala Preserve" },
+      { key: "pyramids", label: "Pyramid Arts" },
+      { key: "poojaplatter", label: "Pooja platter" },
+      { key: "wallarts", label: "Wall-Arts" },
+      { key: "returngifts", label: "Return Gifts" },
+    ].map((tab) => (
+      <button
+        key={tab.key}
+        onClick={() => setActiveTab(tab.key as any)}
+        className={`pb-3 px-4 text-lg font-medium transition-all
+          ${
+            activeTab === tab.key
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground hover:text-primary"
+          }`}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
+</div>
+
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -238,59 +309,11 @@ export default function Home({ searchQuery, selectedCategory, onCategoryChange }
 
     </div>
   </section>
+  
 )}
-      {/* Newsletter */}
-<section className="py-16 bg-primary text-primary-foreground">
-  <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <h2 className="text-3xl font-bold mb-4">Contact Us</h2>
-    <p className="text-lg mb-8 text-primary-foreground/90">
-      We’re here to help! Reach out to us anytime for custom orders, or support.
-    </p>
-    <div className="space-y-2 text-lg">
-      <p>
-        <span className="font-semibold">Address: Hingna, Maharashtra, India – 441110</span><br />
-
-      </p>
-      <p>
-        <span className="font-semibold">WhatsApp:   
-        <a 
-          href="https://wa.me/918309227948"
-          target="_blank"
-          className="underline hover:text-secondary"
-        >
-          +91 8309227948
-        </a>
-        </span>
-        <br />
-      </p>
-
-      <p>
-        <span className="font-semibold">Instagram:  </span>
-        <a 
-          href="https://instagram.com/yourpage"
-          target="_blank"
-          className="underline hover:text-secondary"
-        >
-          @vkpremium
-        </a>
-      </p>
-      <br />
-
-      <p>
-        <span className="font-semibold">Email:  </span>
-        <a 
-          href="mailto:supportvkarts@gmail.com"
-          className="underline hover:text-secondary"
-        >
-          supportvkpremium@gmail.com
-        </a>
-        
-      </p>
-      <br />
+<ScrollToTopButton />
     </div>
-  </div>
-</section>
-
-    </div>
+    
   );
+
 }

@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", async (req, res) => {
     try {
-      const { items, customerInfo,shippingAddress, ...orderData } = req.body;
+      const { items, ...orderData } = req.body;
       // const { orderId, email, items, totalAmount } = req.body;
 
       if (!items || !Array.isArray(items) || items.length === 0) {
